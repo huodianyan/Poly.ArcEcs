@@ -28,7 +28,7 @@ namespace Poly.ArcEcs
         //Query
         internal EcsQuery[] queries;
         internal int queryCount;
-        internal EcsQueryDesc[] queryDescs;
+        //internal EcsQueryDesc[] queryDescs;
         private Dictionary<int, int> queryIdDict;
         private EcsQueryDesc[] recycledQueryDescs;
         private int recycledQueryDescCount;
@@ -79,7 +79,7 @@ namespace Poly.ArcEcs
             capacity = cfg.QueryCapacity > 0 ? cfg.QueryCapacity : Config.QueryCapacityDefault;
             queries = new EcsQuery[capacity];
             queryCount = 0;
-            queryDescs = new EcsQueryDesc[capacity];
+            //queryDescs = new EcsQueryDesc[capacity];
             queryIdDict = new Dictionary<int, int>();
             recycledQueryDescs = new EcsQueryDesc[32];
             recycledQueryDescCount = 0;
@@ -114,7 +114,7 @@ namespace Poly.ArcEcs
             //Query
             queries = null;
             queryCount = 0;
-            queryDescs = null;
+            //queryDescs = null;
             queryIdDict.Clear();
             queryIdDict = null;
             recycledQueryDescs = null;
@@ -502,8 +502,8 @@ namespace Poly.ArcEcs
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EcsQueryDesc CreateQueryDesc() => recycledQueryDescCount > 0 ? recycledQueryDescs[--recycledQueryDescCount] : new EcsQueryDesc(this);
-        public ref readonly EcsQuery GetQuery(int queryId) => ref queries[queryId];
-        public ref readonly EcsQuery GetQuery(EcsQueryDesc questDesc)
+        public EcsQuery GetQuery(int queryId) => queries[queryId];
+        public EcsQuery GetQuery(EcsQueryDesc questDesc)
         {
             var hash = questDesc.hash;
             if (queryIdDict.TryGetValue(hash, out var queryId))
@@ -511,21 +511,45 @@ namespace Poly.ArcEcs
                 questDesc.Reset();
                 if (recycledQueryDescCount == recycledQueryDescs.Length) Array.Resize(ref recycledQueryDescs, recycledQueryDescCount << 1);
                 recycledQueryDescs[recycledQueryDescCount++] = questDesc;
-                return ref queries[queryId];
+                return queries[queryId];
             }
             if (queryCount == queries.Length)
             {
                 Array.Resize(ref queries, queryCount << 1);
-                Array.Resize(ref queryDescs, queryCount << 1);
+                //Array.Resize(ref queryDescs, queryCount << 1);
             }
             queryId = queryCount++;
-            var query = new EcsQuery(this, queryId);
+            var query = new EcsQuery(this, queryId, questDesc);
             queryIdDict[hash] = queryId;
             queries[queryId] = query;
-            queryDescs[queryId] = questDesc;
+            //queryDescs[queryId] = questDesc;
             QueryCreatedEvent?.Invoke(queryId);
-            return ref queries[queryId];
+            return queries[queryId];
         }
+        //public ref readonly EcsQuery GetQuery(int queryId) => ref queries[queryId];
+        //public ref readonly EcsQuery GetQuery(EcsQueryDesc questDesc)
+        //{
+        //    var hash = questDesc.hash;
+        //    if (queryIdDict.TryGetValue(hash, out var queryId))
+        //    {
+        //        questDesc.Reset();
+        //        if (recycledQueryDescCount == recycledQueryDescs.Length) Array.Resize(ref recycledQueryDescs, recycledQueryDescCount << 1);
+        //        recycledQueryDescs[recycledQueryDescCount++] = questDesc;
+        //        return ref queries[queryId];
+        //    }
+        //    if (queryCount == queries.Length)
+        //    {
+        //        Array.Resize(ref queries, queryCount << 1);
+        //        Array.Resize(ref queryDescs, queryCount << 1);
+        //    }
+        //    queryId = queryCount++;
+        //    var query = new EcsQuery(this, queryId, questDesc);
+        //    queryIdDict[hash] = queryId;
+        //    queries[queryId] = query;
+        //    queryDescs[queryId] = questDesc;
+        //    QueryCreatedEvent?.Invoke(queryId);
+        //    return ref queries[queryId];
+        //}
         #endregion
 
         #region System

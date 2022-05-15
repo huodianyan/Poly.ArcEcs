@@ -1,13 +1,17 @@
 # ArcEcs - Lightweight C# Entity Component System framework
-Performance, zero/small memory allocations/footprint, no dependencies on any game engine - are the main goals of this project.
+A lightweight archetypal ECS focused on compatibility and performance.
 
 ## Features
-
-- Hybrid [SoA and AoS](https://en.wikipedia.org/wiki/AoS_and_SoA) storage
-- Complex, scalar, and tag components
-- Fast iteration and mutation [[1]](https://github.com/ddmills/js-ecs-benchmarks) [[2]](https://github.com/noctjs/ecs-benchmark)
-- Fast insert/relocate and auto-updating queries via [connected archetype graph](./graph.png)
-- Compatible with third-party libraries like Three.js, Pixi, and Cannon
+- Zero dependencies
+- Minimal ECS core
+- Lightweight and fast
+- Zero/small memory allocations/footprint
+- Entity managed with archetype
+- Query traverse archetype, No entity cache
+- 255 components, unlimited entity, archetype, query, system
+- Adapted to all C# game engine
+- Support Web by same framework*
+- Support serialzation, network*
 
 # Table of content
 - [Socials](#socials)
@@ -17,12 +21,28 @@ Performance, zero/small memory allocations/footprint, no dependencies on any gam
   - [Component](#component)
 
 # Socials
-[![discord](https://img.shields.io/discord/963730852452388894.svg?label=New%20Community%20Discord%20server&style=for-the-badge&logo=discord)](https://discord.gg/ZAhCUv5YQt)
 
 # Installation
 
 # Overview
 
+```csharp
+struct ComponentA { public int Value; }
+struct ComponentB { public int Value; }
+
+var world = new EcsWorld();
+world.RegisterComponent<ComponentA>();
+world.RegisterComponent<ComponentB>();
+
+world.CreateEntity(typeof(ComponentA), typeof(ComponentC));
+
+var queryDesc = world.CreateQueryDesc().WithAll<ComponentA>().WithNone<ComponentB>().Build();
+var query = world.GetQuery(queryDesc);
+query.ForEach((int entity, ref ComponentA compA) =>
+{
+    compA.Value++;
+});
+```
 ## Entity
 
 ## Component
@@ -42,4 +62,31 @@ No personal support or any guarantees.
 
 # FAQ
 
+# References
 
+## Documents
+- [Building an ECS #2: Archetypes and Vectorization](https://medium.com/@ajmmertens/building-an-ecs-2-archetypes-and-vectorization-fe21690805f9)
+- [ECS back and forth Part 2 - Where are my entities?](https://skypjack.github.io/2019-03-07-ecs-baf-part-2/)
+- [Introducing ECSY: an Entity Component System framework for the Web](https://blog.mozvr.com/introducing-ecsy/)
+
+## Projects
+- [skypjack/entt](https://github.com/skypjack/entt)
+- [SanderMertens/flecs](https://github.com/SanderMertens/flecs)
+- [LeoECSCommunity/ecslite](https://github.com/LeoECSCommunity/ecslite)
+- [LeoECSCommunity/ecs](https://github.com/LeoECSCommunity/ecs)
+- [voledyhil/MiniEcs](https://github.com/voledyhil/MiniEcs)
+- [craftworkgames/MonoGame.Extended](https://github.com/craftworkgames/MonoGame.Extended)
+	- [Entities](https://www.monogameextended.net/docs/features/entities/entities)
+- [sschmid/Entitas-CSharp](https://github.com/sschmid/Entitas-CSharp)
+	- [rocwood/Entitas-Lite](https://github.com/rocwood/Entitas-Lite)
+- [EcsRx/ecsrx](https://github.com/EcsRx/ecsrx)
+- [Unity-Technologies/EntityComponentSystemSamples](https://github.com/Unity-Technologies/EntityComponentSystemSamples)
+
+## Benchmarks
+- [Doraku/Ecs.CSharp.Benchmark](https://github.com/Doraku/Ecs.CSharp.Benchmark)
+- [noctjs/ecs-benchmark](https://github.com/noctjs/ecs-benchmark)
+- [ddmills/js-ecs-benchmarks](https://github.com/ddmills/js-ecs-benchmarks)
+
+## Tech Docs
+- [Write safe and efficient C# code](https://docs.microsoft.com/en-us/dotnet/csharp/write-safe-efficient-code)
+- [Boxing and Unboxing (C# Programming Guide)](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/types/boxing-and-unboxing)

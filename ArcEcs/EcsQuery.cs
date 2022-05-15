@@ -10,16 +10,11 @@ namespace Poly.ArcEcs
     public delegate void ForEachECC<T0, T1>(int e, ref T0 t0, ref T1 t1) where T0 : struct where T1 : struct;
     public delegate void ForEachECCC<T0, T1, T2>(int e, ref T0 t0, ref T1 t1, ref T2 t2) where T0 : struct where T1 : struct where T2 : struct;
     public delegate void ForEachECCCC<T0, T1, T2, T3>(int e, ref T0 t0, ref T1 t1, ref T2 t2, ref T3 t3) where T0 : struct where T1 : struct where T2 : struct where T3 : struct;
-    //public delegate void RI<T0, T1>(ref T0 t0, in T1 t1);
-    //public delegate void RR<T0, T1>(ref T0 t0, ref T1 t1);
-    //public delegate void II<T0, T1>(in T0 t0, in T1 t1);
-    //public delegate void VI<T0, T1>(T0 t0, in T1 t1);
-    //public delegate void VR<T0, T1>(T0 t0, ref T1 t1);
-    //public delegate void VV<T0, T1>(T0 t0, T1 t1);
-    public struct EcsQuery
+
+    public class EcsQuery
     {
         private readonly EcsWorld world;
-        //private readonly EcsQueryDesc queryDesc;
+        private readonly EcsQueryDesc queryDesc;
         internal int id;
         internal int version;
         //internal FastArray<int> ArchetypeIds;
@@ -27,15 +22,16 @@ namespace Poly.ArcEcs
         internal int archetypeCount;
 
         //public int Version => version;
-        public ref readonly EcsQueryDesc QueryDesc => ref world.queryDescs[id];
+        //public ref readonly EcsQueryDesc QueryDesc => ref world.queryDescs[id];
+        public EcsQueryDesc QueryDesc => queryDesc;
 
         public event Action<int> ArchetypeAddedEvent;
-        //public event Action<int> ArchetypeRemovedEvent;
 
-        internal EcsQuery(EcsWorld world, int id)
+        internal EcsQuery(EcsWorld world, int id, EcsQueryDesc queryDesc)
         {
             this.world = world;
             this.id = id;
+            this.queryDesc = queryDesc;
             version = 0;
             archetypeIds = new int[256];
             archetypeCount = 0;
@@ -64,7 +60,7 @@ namespace Poly.ArcEcs
             var count = world.archetypeCount;
             //Console.WriteLine($"EcsQuery.UpdateArchetypes: {version} == {count}, {id}");
             if (version >= count) return;
-            ref readonly var queryDesc = ref world.queryDescs[id];
+            //ref readonly var queryDesc = ref world.queryDescs[id];
             for (int i = version; i < count; i++)
             {
                 ref var archetype = ref world.archetypes[i];
@@ -212,7 +208,7 @@ namespace Poly.ArcEcs
         #endregion
     }
 
-    public struct EcsQueryDesc
+    public class EcsQueryDesc
     {
         private readonly EcsWorld world;
 

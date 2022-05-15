@@ -149,7 +149,7 @@ namespace Poly.ArcEcs.Test
             Assert.AreEqual(2, archetypeBD.EntityCount);
 
             var queryDesc = world.CreateQueryDesc().WithAll<ComponentB, ComponentA>().WithNone<ComponentC>().Build();
-            ref readonly var query = ref world.GetQuery(queryDesc);
+            var query = world.GetQuery(queryDesc);
             Assert.AreEqual(1, world.QueryCount);
             //entityABD,entityAB
             Assert.AreEqual(2, query.GetEntityCount());
@@ -191,6 +191,26 @@ namespace Poly.ArcEcs.Test
             });
             Assert.AreEqual(3, index);
             Assert.AreEqual(5, query.GetEntityCount());
+        }
+
+        public class System : IEcsSystem
+        {
+            private EcsQuery query;
+            public void Init(EcsWorld world)
+            {
+                var queryDesc = world.CreateQueryDesc().WithAll<ComponentA>().WithNone<ComponentB>().Build();
+                query = world.GetQuery(queryDesc);
+            }
+            public void Dispose()
+            {
+            }
+            public void Update()
+            {
+                query.ForEach((int entity, ref ComponentA compA) =>
+                {
+                    compA.Value++;
+                });
+            }
         }
     }
 }
