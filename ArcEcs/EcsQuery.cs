@@ -53,7 +53,19 @@ namespace Poly.ArcEcs
         public bool Matchs(int entityId)
         {
             ref readonly var archetype = ref world.GetEntityArchetype(entityId);
-            return QueryDesc.Marches(archetype);
+            return Marches(archetype);
+        }
+        internal bool Marches(in EcsArchetype archetype)
+        {
+            for (int i = 0; i < queryDesc.allCount; i++)
+                if (!archetype.HasComponent(queryDesc.all[i])) return false;
+            for (int i = 0; i < queryDesc.noneCount; i++)
+                if (archetype.HasComponent(queryDesc.none[i])) return false;
+            if (queryDesc.anyCount == 0) return true;
+            bool isAny = false;
+            for (int i = 0; i < queryDesc.anyCount; i++)
+                if (archetype.HasComponent(queryDesc.any[i])) { isAny = true; break; }
+            return isAny;
         }
         internal void UpdateArchetypes()
         {
@@ -65,7 +77,7 @@ namespace Poly.ArcEcs
             {
                 ref var archetype = ref world.archetypes[i];
                 //Console.WriteLine($"EcsQuery.UpdateArchetypes: {archetype.id}");
-                if (!queryDesc.Marches(in archetype)) continue;
+                if (!Marches(in archetype)) continue;
                 if (archetypeCount == archetypeIds.Length) Array.Resize(ref archetypeIds, archetypeCount << 1);
                 archetypeIds[archetypeCount++] = i;
                 ArchetypeAddedEvent?.Invoke(archetype.id);
@@ -212,9 +224,9 @@ namespace Poly.ArcEcs
     {
         private readonly EcsWorld world;
 
-        internal byte[] All;
-        internal byte[] Any;
-        internal byte[] None;
+        internal byte[] all;
+        internal byte[] any;
+        internal byte[] none;
         internal byte allCount;
         internal byte anyCount;
         internal byte noneCount;
@@ -223,9 +235,9 @@ namespace Poly.ArcEcs
         internal EcsQueryDesc(EcsWorld world)
         {
             this.world = world;
-            All = new byte[4];
-            Any = new byte[4];
-            None = new byte[4];
+            all = new byte[4];
+            any = new byte[4];
+            none = new byte[4];
             hash = allCount = anyCount = noneCount = 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -238,31 +250,31 @@ namespace Poly.ArcEcs
         }
         public EcsQueryDesc Build()
         {
-            if (anyCount > 1) Array.Sort(All, 0, allCount);
-            if (anyCount > 1) Array.Sort(Any, 0, anyCount);
-            if (noneCount > 1) Array.Sort(None, 0, noneCount);
+            if (allCount > 1) Array.Sort(all, 0, allCount);
+            if (anyCount > 1) Array.Sort(any, 0, anyCount);
+            if (noneCount > 1) Array.Sort(none, 0, noneCount);
             // calculate hash.
             hash = allCount + anyCount + noneCount;
             for (int i = 0; i < allCount; i++)
-                hash = unchecked(hash * 13 + All[i]);
+                hash = unchecked(hash * 13 + all[i]);
             for (int i = 0; i < anyCount; i++)
-                hash = unchecked(hash * 17 + Any[i]);
+                hash = unchecked(hash * 17 + any[i]);
             for (int i = 0; i < noneCount; i++)
-                hash = unchecked(hash * 23 - None[i]);
+                hash = unchecked(hash * 23 - none[i]);
             return this;
         }
-        internal bool Marches(in EcsArchetype archetype)
-        {
-            for (int i = 0; i < allCount; i++)
-                if (!archetype.HasComponent(All[i])) return false;
-            for (int i = 0; i < noneCount; i++)
-                if (archetype.HasComponent(None[i])) return false;
-            if (anyCount == 0) return true;
-            bool isAny = false;
-            for (int i = 0; i < anyCount; i++)
-                if (archetype.HasComponent(Any[i])) { isAny = true; break; }
-            return isAny;
-        }
+        //internal bool Marches(in EcsArchetype archetype)
+        //{
+        //    for (int i = 0; i < allCount; i++)
+        //        if (!archetype.HasComponent(all[i])) return false;
+        //    for (int i = 0; i < noneCount; i++)
+        //        if (archetype.HasComponent(none[i])) return false;
+        //    if (anyCount == 0) return true;
+        //    bool isAny = false;
+        //    for (int i = 0; i < anyCount; i++)
+        //        if (archetype.HasComponent(any[i])) { isAny = true; break; }
+        //    return isAny;
+        //}
 
         #region All
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -270,8 +282,8 @@ namespace Poly.ArcEcs
         {
             //if (Array.IndexOf(All, compId, 0, AllCount) != -1) { throw new Exception($"{type.Name} already in constraints list."); }
             //if (Array.IndexOf(None, compId, 0, NoneCount) != -1) { throw new Exception($"{type.Name} already in constraints list."); }
-            if (allCount == All.Length) { Array.Resize(ref All, allCount << 1); }
-            All[allCount++] = compId;
+            if (allCount == all.Length) { Array.Resize(ref all, allCount << 1); }
+            all[allCount++] = compId;
         }
         public EcsQueryDesc WithAll(params byte[] compIds)
         {
@@ -293,8 +305,8 @@ namespace Poly.ArcEcs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WithAny(byte compId)
         {
-            if (anyCount == Any.Length) { Array.Resize(ref Any, anyCount << 1); }
-            Any[anyCount++] = compId;
+            if (anyCount == any.Length) { Array.Resize(ref any, anyCount << 1); }
+            any[anyCount++] = compId;
         }
         public EcsQueryDesc WithAny(params byte[] compIds)
         {
@@ -315,8 +327,8 @@ namespace Poly.ArcEcs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WithNone(byte compId)
         {
-            if (noneCount == None.Length) { Array.Resize(ref None, noneCount << 1); }
-            None[noneCount++] = compId;
+            if (noneCount == none.Length) { Array.Resize(ref none, noneCount << 1); }
+            none[noneCount++] = compId;
         }
         public EcsQueryDesc WithNone(params byte[] compIds)
         {

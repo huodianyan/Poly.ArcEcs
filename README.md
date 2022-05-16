@@ -1,4 +1,4 @@
-# ArcEcs - Lightweight C# Entity Component System framework
+# ArcEcs - Lightweight archetypal C# Entity Component System framework
 A lightweight archetypal ECS focused on compatibility and performance.
 
 ## Features
@@ -6,7 +6,7 @@ A lightweight archetypal ECS focused on compatibility and performance.
 - Minimal ECS core
 - Lightweight and fast
 - Zero/small memory allocations/footprint
-- Entity managed with archetype
+- Entity/Component managed by archetypes and archetypal graph
 - Query traverse archetype, No entity cache
 - 255 components, unlimited entity, archetype, query, system
 - Adapted to all C# game engine
