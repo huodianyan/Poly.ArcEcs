@@ -1,16 +1,39 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Poly.ArcEcs
 {
+    public struct Parent
+    {
+        public EcsEntity Entity;
+    }
+    public struct Children
+    {
+        public List<EcsEntity> EntityList;
+
+        public void AddChild(EcsEntity entity)
+        {
+            EntityList ??= new List<EcsEntity>();
+            if (!EntityList.Contains(entity))
+                EntityList.Add(entity);
+        }
+        public void RemoveChild(EcsEntity entity)
+        {
+            EntityList.Remove(entity);
+        }
+    }
+
     #region Component
     public delegate IEcsComponentArray CreateComponentArrayDelegate(int capacity);
     internal delegate void CopyComponentDelegate(EcsArchetype src, int chunkId, EcsArchetype dest);
-    internal struct EcsComponentType
+    internal class EcsComponentType
     {
         //255: 0~254(0xFE)
         internal byte Id;
         internal Type Type;
+        //internal object Default;
+        internal IEcsComponentArray CompArray;
         internal CreateComponentArrayDelegate ComponentArrayCreator;
         internal CopyComponentDelegate CopyChunkComponent;
     }
@@ -21,6 +44,8 @@ namespace Poly.ArcEcs
         int Count { get; }
 
         void Add();
+        object Get(int index);
+        void Set(int index, object comp);
         //void Clear();
         bool RemoveAt(int index);
     }
@@ -59,7 +84,10 @@ namespace Poly.ArcEcs
             items[count] = default;
             return result;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        object IEcsComponentArray.Get(int index) => items[index];
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        void IEcsComponentArray.Set(int index, object comp) => items[index] = (T)comp;
     }
     #endregion
 }
