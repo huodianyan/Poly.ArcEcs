@@ -14,7 +14,7 @@ namespace Poly.ArcEcs.Test
         [ClassCleanup]
         public static void ClassCleanup()
         {
-            world.Destroy();
+            world.Dispose();
         }
         [TestInitialize]
         public void TestInitialize()
@@ -25,19 +25,19 @@ namespace Poly.ArcEcs.Test
         {
         }
 
-        private struct ComponentA
+        private struct CompA
         {
             public int Value;
         }
-        private struct ComponentB
+        private struct CompB
         {
             public int Value;
         }
-        private struct ComponentC
+        private struct CompC
         {
             public int Value;
         }
-        private struct ComponentD
+        private struct CompD
         {
             public int Value;
         }
@@ -45,21 +45,21 @@ namespace Poly.ArcEcs.Test
         public static void SetupPolyEcs()
         {
             world = new EcsWorld();
-            world.RegisterComponent<ComponentA>();
-            world.RegisterComponent<ComponentB>();
-            world.RegisterComponent<ComponentC>();
-            world.RegisterComponent<ComponentD>();
+            //world.RegisterComponent<ComponentA>();
+            //world.RegisterComponent<ComponentB>();
+            //world.RegisterComponent<ComponentC>();
+            //world.RegisterComponent<ComponentD>();
 
             for (int i = 0; i < 15000; ++i)
             {
-                world.CreateEntity(typeof(ComponentA), typeof(ComponentB), typeof(ComponentD));
-                world.CreateEntity(typeof(ComponentA), typeof(ComponentC));
-                world.CreateEntity(typeof(ComponentB), typeof(ComponentD));
-                world.CreateEntity(typeof(ComponentB), typeof(ComponentD));
-                world.CreateEntity(typeof(ComponentB), typeof(ComponentC));
-                world.CreateEntity(typeof(ComponentA), typeof(ComponentB));
-                world.CreateEntity(typeof(ComponentA), typeof(ComponentD));
-                world.CreateEntity(typeof(ComponentA), typeof(ComponentB), typeof(ComponentC));
+                world.CreateEntity<CompA, CompB, CompD>();
+                world.CreateEntity<CompA, CompC>();
+                world.CreateEntity<CompB, CompD>();
+                world.CreateEntity<CompB, CompD>();
+                world.CreateEntity<CompC, CompB>();
+                world.CreateEntity<CompA, CompB>();
+                world.CreateEntity<CompA, CompD>();
+                world.CreateEntity<CompA, CompB, CompC>();
             }
         }
         [TestMethod]
@@ -71,42 +71,42 @@ namespace Poly.ArcEcs.Test
 
             for (int i = 0; i < 1000; i++)
             {
-                var queryDescA = world.CreateQueryDesc().WithAll<ComponentA>().Build();
+                var queryDescA = world.CreateQueryDesc().WithAll<CompA>().Build();
                 var queryA = world.GetQuery(queryDescA);
-                var queryDescB = world.CreateQueryDesc().WithAll<ComponentB>().Build();
+                var queryDescB = world.CreateQueryDesc().WithAll<CompB>().Build();
                 var queryB = world.GetQuery(queryDescB);
-                var queryDescC = world.CreateQueryDesc().WithAll<ComponentC>().Build();
+                var queryDescC = world.CreateQueryDesc().WithAll<CompC>().Build();
                 var queryC = world.GetQuery(queryDescC);
-                var queryDescD = world.CreateQueryDesc().WithAll<ComponentD>().Build();
+                var queryDescD = world.CreateQueryDesc().WithAll<CompD>().Build();
                 var queryD = world.GetQuery(queryDescD);
 
-                var queryDescAB = world.CreateQueryDesc().WithAll<ComponentA, ComponentB>().Build();
+                var queryDescAB = world.CreateQueryDesc().WithAll<CompA, CompB>().Build();
                 var queryAB = world.GetQuery(queryDescAB);
-                var queryDescAC = world.CreateQueryDesc().WithAll<ComponentA, ComponentC>().Build();
+                var queryDescAC = world.CreateQueryDesc().WithAll<CompA, CompC>().Build();
                 var queryAC = world.GetQuery(queryDescAC);
-                var queryDescAD = world.CreateQueryDesc().WithAll<ComponentA, ComponentD>().Build();
+                var queryDescAD = world.CreateQueryDesc().WithAll<CompA, CompD>().Build();
                 var queryAD = world.GetQuery(queryDescAD);
 
-                var queryDescABC = world.CreateQueryDesc().WithAll<ComponentA, ComponentB, ComponentC>().Build();
+                var queryDescABC = world.CreateQueryDesc().WithAll<CompA, CompB, CompC>().Build();
                 var queryABC = world.GetQuery(queryDescABC);
-                var queryDescABD = world.CreateQueryDesc().WithAll<ComponentA, ComponentB, ComponentD>().Build();
+                var queryDescABD = world.CreateQueryDesc().WithAll<CompA, CompB, CompD>().Build();
                 var queryABD = world.GetQuery(queryDescABD);
 
-                var queryDescABCD = world.CreateQueryDesc().WithAll<ComponentA, ComponentB, ComponentC, ComponentD>().Build();
+                var queryDescABCD = world.CreateQueryDesc().WithAll<CompA, CompB, CompC, CompD>().Build();
                 var queryABCD = world.GetQuery(queryDescABCD);
             }
 
             for (int i = 0; i < 1000; i++)
             {
-                var entityABD = world.CreateEntity(typeof(ComponentA), typeof(ComponentB), typeof(ComponentD));
-                var entityAC = world.CreateEntity(typeof(ComponentA), typeof(ComponentC));
-                var entityBD0 = world.CreateEntity(typeof(ComponentB), typeof(ComponentD));
-                var entityBD1 = world.CreateEntity(typeof(ComponentB), typeof(ComponentD));
-                var entityBC = world.CreateEntity(typeof(ComponentB), typeof(ComponentC));
-                var entityAB = world.CreateEntity(typeof(ComponentA), typeof(ComponentB));
-                var entityAD = world.CreateEntity(typeof(ComponentA), typeof(ComponentD));
-                var entityABC = world.CreateEntity(typeof(ComponentA), typeof(ComponentB), typeof(ComponentC));
-                var entityABCD = world.CreateEntity(typeof(ComponentA), typeof(ComponentB), typeof(ComponentC), typeof(ComponentD));
+                var entityABD = world.CreateEntity<CompA, CompB, CompD>();
+                var entityAC = world.CreateEntity<CompA, CompC>();
+                var entityBD0 = world.CreateEntity<CompB, CompD>();
+                var entityBD1 = world.CreateEntity<CompB, CompD>();
+                var entityBC = world.CreateEntity<CompB, CompC>();
+                var entityAB = world.CreateEntity<CompA, CompB>();
+                var entityAD = world.CreateEntity<CompA, CompD>();
+                var entityABC = world.CreateEntity<CompA, CompB, CompC>();
+                var entityABCD = world.CreateEntity<CompA, CompB, CompD, CompC>();
 
                 entities[index++] = entityABD;
                 entities[index++] = entityAC;
@@ -135,9 +135,9 @@ namespace Poly.ArcEcs.Test
         [TestMethod]
         public void PolyEcsForEachOneComp()
         {
-            var queryDesc = world.CreateQueryDesc().WithAll<ComponentA>().WithNone<ComponentB, ComponentD>().Build();
+            var queryDesc = world.CreateQueryDesc().WithAll<CompA>().WithNone<CompB, CompD>().Build();
             var query = world.GetQuery(queryDesc);
-            query.ForEach((EcsEntity entity, ref ComponentA compA) =>
+            query.ForEach((EcsEntity entity, ref CompA compA) =>
             {
                 compA.Value++;
             });
@@ -146,9 +146,9 @@ namespace Poly.ArcEcs.Test
         [TestMethod]
         public void PolyEcsForEachTwoComp()
         {
-            var queryDesc = world.CreateQueryDesc().WithAll<ComponentA, ComponentC>().WithNone<ComponentB, ComponentD>().Build();
+            var queryDesc = world.CreateQueryDesc().WithAll<CompA, CompC>().WithNone<CompB, CompD>().Build();
             var query = world.GetQuery(queryDesc);
-            query.ForEach((EcsEntity entity, ref ComponentA compA, ref ComponentC compC) =>
+            query.ForEach((EcsEntity entity, ref CompA compA, ref CompC compC) =>
             {
                 compA.Value++;
                 compC.Value++;
@@ -157,9 +157,9 @@ namespace Poly.ArcEcs.Test
         [TestMethod]
         public void PolyEcsForEachThreeComp()
         {
-            var queryDesc = world.CreateQueryDesc().WithAll<ComponentA, ComponentB, ComponentC>().WithNone<ComponentD>().Build();
+            var queryDesc = world.CreateQueryDesc().WithAll<CompA, CompB, CompC>().WithNone<CompD>().Build();
             var query = world.GetQuery(queryDesc);
-            query.ForEach((EcsEntity entity, ref ComponentA compA, ref ComponentB compB, ref ComponentC compC) =>
+            query.ForEach((EcsEntity entity, ref CompA compA, ref CompB compB, ref CompC compC) =>
             {
                 compA.Value++;
                 compB.Value++;
@@ -169,10 +169,10 @@ namespace Poly.ArcEcs.Test
         [TestMethod]
         public void PolyEcsForEachFourComp()
         {
-            var queryDesc = world.CreateQueryDesc().WithAll<ComponentA, ComponentB, ComponentC, ComponentD>().Build();
+            var queryDesc = world.CreateQueryDesc().WithAll<CompA, CompB, CompC, CompD>().Build();
             var query = world.GetQuery(queryDesc);
             //Console.WriteLine($"PolyEcsForEachFourComp: {query.GetEntityCount()}");
-            query.ForEach((EcsEntity entity, ref ComponentA compA, ref ComponentB compB, ref ComponentC compC, ref ComponentD compD) =>
+            query.ForEach((EcsEntity entity, ref CompA compA, ref CompB compB, ref CompC compC, ref CompD compD) =>
             {
                 compA.Value++;
                 compB.Value++;
@@ -184,12 +184,12 @@ namespace Poly.ArcEcs.Test
         [TestMethod]
         public void PolyEcsQueryTest1()
         {
-            var compAId = world.GetComponentId(typeof(ComponentA));
-            var compBId = world.GetComponentId(typeof(ComponentB));
-            var compCId = world.GetComponentId(typeof(ComponentC));
-            var compDId = world.GetComponentId(typeof(ComponentD));
+            var compAId = world.GetComponentId<CompA>();
+            var compBId = world.GetComponentId<CompB>();
+            var compCId = world.GetComponentId<CompC>();
+            var compDId = world.GetComponentId<CompD>();
 
-            var queryDescA = world.CreateQueryDesc().WithAll<ComponentA>().Build();
+            var queryDescA = world.CreateQueryDesc().WithAll<CompA>().Build();
             var queryA = world.GetQuery(queryDescA);
             //queryA.ForEach((int entity, ref ComponentA compA) =>
             queryA.ForEach((EcsEntity entity) =>
@@ -198,7 +198,7 @@ namespace Poly.ArcEcs.Test
                 world.CreateEntity(compAId, compBId, compCId, compDId);
             });
 
-            var queryDescABCD = world.CreateQueryDesc().WithAll<ComponentA, ComponentB, ComponentC, ComponentD>().Build();
+            var queryDescABCD = world.CreateQueryDesc().WithAll<CompA, CompB, CompC, CompD>().Build();
             var queryABCD = world.GetQuery(queryDescABCD);
             //queryABCD.ForEach((int entity, ref ComponentA compA, ref ComponentB compB, ref ComponentC compC, ref ComponentD compD) =>
             queryABCD.ForEach((EcsEntity entity) =>
@@ -211,19 +211,19 @@ namespace Poly.ArcEcs.Test
         [TestMethod]
         public void PolyEcsQueryTest2()
         {
-            var compDId = world.GetComponentId(typeof(ComponentD));
-            var queryDescABC = world.CreateQueryDesc().WithAll<ComponentA, ComponentB, ComponentC>().WithNone<ComponentD>().Build();
+            var compDId = world.GetComponentId<CompD>();
+            var queryDescABC = world.CreateQueryDesc().WithAll<CompA, CompB, CompC>().WithNone<CompD>().Build();
             var queryABC = world.GetQuery(queryDescABC);
             //Console.WriteLine($"{GetType().Name}.PolyEcsQueryTest2: {queryABC.GetEntityCount()}");
             //queryABC.ForEach((int entity, ref ComponentA compA, ref ComponentB compB, ref ComponentC compC) =>
             queryABC.ForEach((EcsEntity entity) =>
             {
                 //world.AddComponent<ComponentD>(entity);
-                world.AddComponent<ComponentD>(entity, default, compDId);
+                world.AddComponent<CompD>(entity, default, compDId);
             });
             //Console.WriteLine($"{GetType().Name}.PolyEcsQueryTest2: {queryABC.GetEntityCount()}");
 
-            var queryDescABCD = world.CreateQueryDesc().WithAll<ComponentA, ComponentB, ComponentC, ComponentD>().Build();
+            var queryDescABCD = world.CreateQueryDesc().WithAll<CompA, CompB, CompC, CompD>().Build();
             var queryABCD = world.GetQuery(queryDescABCD);
             //Console.WriteLine($"{GetType().Name}.PolyEcsQueryTest2: {queryABCD.GetEntityCount()}");
             queryABCD.ForEach((EcsEntity entity) =>

@@ -1,11 +1,12 @@
-# ArcEcs - Lightweight archetypal C# Entity Component System framework
-A lightweight archetypal ECS focused on compatibility and performance.
+# ArcEcs
+A minimal archetypal ECS focused on compatibility and performance.
 
 ## Features
 - Zero dependencies
 - Minimal ECS core
 - Lightweight and fast
 - Zero/small memory allocations/footprint
+- Struct based Entity/Component
 - Entity/Component managed by archetypes and archetypal graph
 - Query traverse archetype, No entity cache
 - 255 components, unlimited entity, archetype, query, system
@@ -14,34 +15,32 @@ A lightweight archetypal ECS focused on compatibility and performance.
 - Support serialzation, network*
 
 # Table of content
-- [Socials](#socials)
 - [Installation](#installation)
 - [Overview](#overview)
   - [Entity](#entity)
   - [Component](#component)
-
-# Socials
 
 # Installation
 
 # Overview
 
 ```csharp
-struct ComponentA { public int Value; }
-struct ComponentB { public int Value; }
+
+struct CompA { public int Value; }
+struct CompB { public int Value; }
 
 var world = new EcsWorld();
-world.RegisterComponent<ComponentA>();
-world.RegisterComponent<ComponentB>();
+world.CreateEntity<CompA, CompB>();
 
-world.CreateEntity(typeof(ComponentA), typeof(ComponentC));
-
-var queryDesc = world.CreateQueryDesc().WithAll<ComponentA>().WithNone<ComponentB>().Build();
+var queryDesc = world.CreateQueryDesc().WithAll<CompA>().WithNone<CompB>().Build();
 var query = world.GetQuery(queryDesc);
-query.ForEach((int entity, ref ComponentA compA) =>
+query.ForEach((int entity, ref CompA compA) =>
 {
     compA.Value++;
 });
+
+world.Dispose();
+
 ```
 ## Entity
 
@@ -54,11 +53,10 @@ query.ForEach((int entity, ref ComponentA compA) =>
 ## Archetype
 
 # Extensions
+- [huodianyan/Poly.AcrEcs.Unity](https://github.com/huodianyan/Poly.AcrEcs.Unity)
 
 # License
 The software is released under the terms of the [MIT license](./LICENSE.md).
-
-No personal support or any guarantees.
 
 # FAQ
 

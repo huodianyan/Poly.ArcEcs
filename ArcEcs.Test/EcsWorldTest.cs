@@ -44,15 +44,15 @@ namespace Poly.ArcEcs.Test
         public void TestInitialize()
         {
             world = new EcsWorld();
-            world.RegisterComponent<ComponentA>();
-            world.RegisterComponent<ComponentB>();
-            world.RegisterComponent<ComponentC>();
-            world.RegisterComponent<ComponentD>();
+            //world.RegisterComponent<ComponentA>();
+            //world.RegisterComponent<ComponentB>();
+            //world.RegisterComponent<ComponentC>();
+            //world.RegisterComponent<ComponentD>();
         }
         [TestCleanup]
         public void TestCleanup()
         {
-            world.Destroy();
+            world.Dispose();
             world = null;
         }
         [TestMethod]
@@ -99,7 +99,7 @@ namespace Poly.ArcEcs.Test
             Assert.AreEqual(13, compB.Value);
             Assert.AreEqual("dian", compB.Str);
 
-            var archetypeAC = world.GetArchetype(typeof(ComponentC), typeof(ComponentA));
+            var archetypeAC = world.GetArchetype<ComponentC, ComponentA>();
 
             world.RemoveComponent<ComponentB>(entity);
             //[A,C]
@@ -108,7 +108,7 @@ namespace Poly.ArcEcs.Test
             Assert.AreEqual(2, archetype.CompCount);
             Assert.IsFalse(world.HasComponent<ComponentB>(entity));
 
-            entity = world.CreateEntity(typeof(ComponentA), typeof(ComponentC));
+            entity = world.CreateEntity<ComponentA, ComponentC>();
             //[A,C]
             archetype = world.GetEntityArchetype(entity);
             Assert.AreEqual(archetypeAC.Id, archetype.Id);
@@ -134,18 +134,18 @@ namespace Poly.ArcEcs.Test
         [TestMethod]
         public void QueryTest()
         {
-            var entityA = world.CreateEntity(typeof(ComponentA));
-            var entityB = world.CreateEntity(typeof(ComponentB));
-            var entityABD = world.CreateEntity(typeof(ComponentA), typeof(ComponentB), typeof(ComponentD));
-            var entityABC = world.CreateEntity(typeof(ComponentA), typeof(ComponentB), typeof(ComponentC));
-            var entityAC = world.CreateEntity(typeof(ComponentA), typeof(ComponentC));
-            var entityBD0 = world.CreateEntity(typeof(ComponentB), typeof(ComponentD));
-            var entityBD1 = world.CreateEntity(typeof(ComponentB), typeof(ComponentD));
-            var entityBC = world.CreateEntity(typeof(ComponentB), typeof(ComponentC));
-            var entityAB = world.CreateEntity(typeof(ComponentA), typeof(ComponentB));
-            var entityAD = world.CreateEntity(typeof(ComponentA), typeof(ComponentD));
+            var entityA = world.CreateEntity<ComponentA>();
+            var entityB = world.CreateEntity<ComponentB>();
+            var entityABD = world.CreateEntity<ComponentA, ComponentB, ComponentD>();
+            var entityABC = world.CreateEntity<ComponentA, ComponentB, ComponentC>();
+            var entityAC = world.CreateEntity<ComponentA, ComponentC>();
+            var entityBD0 = world.CreateEntity<ComponentB, ComponentD>();
+            var entityBD1 = world.CreateEntity<ComponentB, ComponentD>();
+            var entityBC = world.CreateEntity<ComponentB, ComponentC>();
+            var entityAB = world.CreateEntity<ComponentB, ComponentA>();
+            var entityAD = world.CreateEntity<ComponentA, ComponentD>();
 
-            var archetypeBD = world.GetArchetype(typeof(ComponentD), typeof(ComponentB));
+            var archetypeBD = world.GetArchetype<ComponentD, ComponentB>();
             Assert.AreEqual(2, archetypeBD.EntityCount);
 
             var queryDesc = world.CreateQueryDesc().WithAll<ComponentB, ComponentA>().WithNone<ComponentC>().Build();
@@ -187,7 +187,7 @@ namespace Poly.ArcEcs.Test
             query.ForEach((EcsEntity entity, ref ComponentB compB) =>
             {
                 index++;
-                world.CreateEntity(typeof(ComponentA), typeof(ComponentB), typeof(ComponentD));
+                world.CreateEntity<ComponentB, ComponentD, ComponentA>();
             });
             Assert.AreEqual(3, index);
             Assert.AreEqual(5, query.GetEntityCount());
