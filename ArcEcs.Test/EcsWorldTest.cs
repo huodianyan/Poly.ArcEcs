@@ -7,27 +7,29 @@ namespace Poly.ArcEcs.Test
     [TestClass]
     public partial class EcsWorldTest
     {
-        public struct ComponentA : IEquatable<ComponentA>
+        public struct CompA : IEquatable<CompA>
         {
             public int Value;
-            public bool Equals(ComponentA other) => Value == other.Value;
+            public bool Equals(CompA other) => Value == other.Value;
+            public override string ToString() => $"CompA:{{{Value}}}";
         }
 
-        public struct ComponentB : IEquatable<ComponentB>
+        public struct CompB : IEquatable<CompB>
         {
             public int Value;
             public string Str;
-            public bool Equals(ComponentB other) => Value == other.Value && Str == other.Str;
+            public bool Equals(CompB other) => Value == other.Value && Str == other.Str;
+            public override string ToString() => $"CompB:{{{Value},{Str}}}";
         }
-        public struct ComponentC : IEquatable<ComponentC>
+        public struct CompC : IEquatable<CompC>
         {
             public int Value;
-            public bool Equals(ComponentC other) => Value == other.Value;
+            public bool Equals(CompC other) => Value == other.Value;
         }
-        public struct ComponentD : IEquatable<ComponentD>
+        public struct CompD : IEquatable<CompD>
         {
             public int Value;
-            public bool Equals(ComponentD other) => Value == other.Value;
+            public bool Equals(CompD other) => Value == other.Value;
         }
 
         private static EcsWorld world;
@@ -58,97 +60,124 @@ namespace Poly.ArcEcs.Test
         [TestMethod]
         public void CommonTest()
         {
-            var componentB = new ComponentB { Value = 12 };
+            var compB = new CompB { Value = 12 };
 
             var entity = world.CreateEntity();
             var archetype = world.GetEntityArchetype(entity);
             Assert.AreEqual(0, archetype.Id);
             Assert.AreEqual(1, archetype.EntityCount);
 
-            world.AddComponent(entity, new ComponentA());
+            world.AddComponent(entity, new CompA { Value = 10 });
             //[A]
             archetype = world.GetEntityArchetype(entity);
             Assert.AreEqual(1, archetype.Id);
             Assert.AreEqual(1, archetype.CompCount);
 
-            world.AddComponent(entity, componentB);
+            world.AddComponent(entity, compB);
             //[A,B]
             archetype = world.GetEntityArchetype(entity);
             Assert.AreEqual(2, archetype.Id);
             Assert.AreEqual(2, archetype.CompCount);
 
-            world.AddComponent(entity, new ComponentC());
+            world.AddComponent(entity, new CompC());
             //[A,B,C]
             archetype = world.GetEntityArchetype(entity);
             Assert.AreEqual(3, archetype.Id);
             Assert.AreEqual(3, archetype.CompCount);
 
-            Assert.IsFalse(world.HasComponent<ComponentD>(entity));
-            Assert.IsTrue(world.HasComponent<ComponentB>(entity));
+            Assert.IsFalse(world.HasComponent<CompD>(entity));
+            Assert.IsTrue(world.HasComponent<CompB>(entity));
 
-            ref var compB = ref world.GetComponent<ComponentB>(entity);
+            ref var compB1 = ref world.GetComponent<CompB>(entity);
             var str = "huo";
-            Assert.AreEqual(componentB, compB);
-            compB.Value = 100;
-            compB.Str = str;
-            compB = ref world.GetComponent<ComponentB>(entity);
-            Assert.AreEqual(str, compB.Str);
+            Assert.AreEqual(compB, compB1);
+            compB1.Value = 100;
+            compB1.Str = str;
+            compB1 = ref world.GetComponent<CompB>(entity);
+            Assert.AreEqual(str, compB1.Str);
 
-            world.SetComponent(entity, new ComponentB { Value = 13, Str = "dian" });
-            compB = ref world.GetComponent<ComponentB>(entity);
-            Assert.AreEqual(13, compB.Value);
-            Assert.AreEqual("dian", compB.Str);
+            world.SetComponent(entity, new CompB { Value = 13, Str = "dian" });
+            compB1 = ref world.GetComponent<CompB>(entity);
+            Assert.AreEqual(13, compB1.Value);
+            Assert.AreEqual("dian", compB1.Str);
 
-            var archetypeAC = world.GetArchetype<ComponentC, ComponentA>();
+            var archetypeAC = world.GetArchetype<CompC, CompA>();
 
-            world.RemoveComponent<ComponentB>(entity);
+            world.RemoveComponent<CompB>(entity);
             //[A,C]
             archetype = world.GetEntityArchetype(entity);
             Assert.AreEqual(archetypeAC.Id, archetype.Id);
             Assert.AreEqual(2, archetype.CompCount);
-            Assert.IsFalse(world.HasComponent<ComponentB>(entity));
+            Assert.IsFalse(world.HasComponent<CompB>(entity));
 
-            entity = world.CreateEntity<ComponentA, ComponentC>();
+            entity = world.CreateEntity<CompA, CompC>();
             //[A,C]
             archetype = world.GetEntityArchetype(entity);
             Assert.AreEqual(archetypeAC.Id, archetype.Id);
             Assert.AreEqual(2, archetype.EntityCount);
 
-            entity = world.CreateEntity(new ComponentA { Value = 13 }, new ComponentC { Value = 17 });
+            entity = world.CreateEntity(new CompA { Value = 13 }, new CompC { Value = 17 });
             //[A,C]
             archetype = world.GetEntityArchetype(entity);
             Assert.AreEqual(archetypeAC.Id, archetype.Id);
             Assert.AreEqual(3, archetype.EntityCount);
 
-            world.RemoveComponent<ComponentA>(entity);
-            ref var compC = ref world.GetComponent<ComponentC>(entity);
+            world.RemoveComponent<CompA>(entity);
+            ref var compC = ref world.GetComponent<CompC>(entity);
             Assert.AreEqual(17, compC.Value);
 
-            world.RemoveComponent<ComponentC>(entity);
+            world.RemoveComponent<CompC>(entity);
             //[]
             archetype = world.GetEntityArchetype(entity);
             Assert.AreEqual(0, archetype.Id);
             Assert.AreEqual(1, archetype.EntityCount);
         }
+        [TestMethod]
+        public void ComponentTest()
+        {
+            //var compB = new CompB { Value = 11 };
 
+            var entity = world.CreateEntity(new CompA { Value = 10 });
+            world.AddComponent(entity, new CompB { Value = 11 });
+            
+            ref var compB1 = ref world.GetComponent<CompB>(entity);
+            Assert.AreEqual(11, compB1.Value);
+
+            var entity1 = world.CreateEntity();
+            world.AddComponent(entity1, new CompA { Value = 20 });
+            //var entity1 = world.CreateEntity(new CompA { Value = 20 });
+            world.AddComponent(entity1, new CompB { Value = 21 });
+            ref var compA1 = ref world.GetComponent<CompA>(entity1);
+            Assert.AreEqual(20, compA1.Value);
+            compB1 = ref world.GetComponent<CompB>(entity1);
+            Assert.AreEqual(21, compB1.Value);
+
+            world.AddComponent(entity, new CompC { Value = 12 });
+            compB1 = ref world.GetComponent<CompB>(entity);
+            Assert.AreEqual(11, compB1.Value);
+
+            world.RemoveComponent<CompC>(entity);
+            compB1 = ref world.GetComponent<CompB>(entity);
+            Assert.AreEqual(11, compB1.Value);
+        }
         [TestMethod]
         public void QueryTest()
         {
-            var entityA = world.CreateEntity<ComponentA>();
-            var entityB = world.CreateEntity<ComponentB>();
-            var entityABD = world.CreateEntity<ComponentA, ComponentB, ComponentD>();
-            var entityABC = world.CreateEntity<ComponentA, ComponentB, ComponentC>();
-            var entityAC = world.CreateEntity<ComponentA, ComponentC>();
-            var entityBD0 = world.CreateEntity<ComponentB, ComponentD>();
-            var entityBD1 = world.CreateEntity<ComponentB, ComponentD>();
-            var entityBC = world.CreateEntity<ComponentB, ComponentC>();
-            var entityAB = world.CreateEntity<ComponentB, ComponentA>();
-            var entityAD = world.CreateEntity<ComponentA, ComponentD>();
+            var entityA = world.CreateEntity<CompA>();
+            var entityB = world.CreateEntity<CompB>();
+            var entityABD = world.CreateEntity<CompA, CompB, CompD>();
+            var entityABC = world.CreateEntity<CompA, CompB, CompC>();
+            var entityAC = world.CreateEntity<CompA, CompC>();
+            var entityBD0 = world.CreateEntity<CompB, CompD>();
+            var entityBD1 = world.CreateEntity<CompB, CompD>();
+            var entityBC = world.CreateEntity<CompB, CompC>();
+            var entityAB = world.CreateEntity<CompB, CompA>();
+            var entityAD = world.CreateEntity<CompA, CompD>();
 
-            var archetypeBD = world.GetArchetype<ComponentD, ComponentB>();
+            var archetypeBD = world.GetArchetype<CompD, CompB>();
             Assert.AreEqual(2, archetypeBD.EntityCount);
 
-            var queryDesc = world.CreateQueryDesc().WithAll<ComponentB, ComponentA>().WithNone<ComponentC>().Build();
+            var queryDesc = world.CreateQueryDesc().WithAll<CompB, CompA>().WithNone<CompC>().Build();
             var query = world.GetQuery(queryDesc);
             Assert.AreEqual(1, world.QueryCount);
             //entityABD,entityAB
@@ -157,26 +186,26 @@ namespace Poly.ArcEcs.Test
             Assert.IsTrue(query.Matchs(entityABD));
 
             //Set comp
-            query.ForEach((EcsEntity entity, ref ComponentB compB) =>
+            query.ForEach((EcsEntity entity, ref CompB compB) =>
             {
                 compB.Value = 13;
             });
-            ref var compB = ref world.GetComponent<ComponentB>(entityABD);
+            ref var compB = ref world.GetComponent<CompB>(entityABD);
             Assert.AreEqual(13, compB.Value);
 
             //Remove comp: entityABD -> entityBD
-            query.ForEach((EcsEntity entity, ref ComponentB compB) =>
+            query.ForEach((EcsEntity entity, ref CompB compB) =>
             {
-                if (world.HasComponent<ComponentD>(entity))
+                if (world.HasComponent<CompD>(entity))
                 {
-                    world.RemoveComponent<ComponentA>(entity);
+                    world.RemoveComponent<CompA>(entity);
                 }
             });
             Assert.AreEqual(1, query.GetEntityCount());
             Assert.AreEqual(3, archetypeBD.EntityCount);//BD
 
-            Assert.IsFalse(world.HasComponent<ComponentA>(entityABD));
-            world.AddComponent<ComponentA>(entityABD);
+            Assert.IsFalse(world.HasComponent<CompA>(entityABD));
+            world.AddComponent<CompA>(entityABD);
             Assert.IsTrue(query.Matchs(entityABD));
             //var entityABCD = world.CreateEntity(typeof(ComponentA), typeof(ComponentB), typeof(ComponentC), typeof(ComponentD));
             //entityAB,entityABD
@@ -184,33 +213,33 @@ namespace Poly.ArcEcs.Test
 
             //TODO
             var index = 0;
-            query.ForEach((EcsEntity entity, ref ComponentB compB) =>
+            query.ForEach((EcsEntity entity, ref CompB compB) =>
             {
                 index++;
-                world.CreateEntity<ComponentB, ComponentD, ComponentA>();
+                world.CreateEntity<CompB, CompD, CompA>();
             });
             Assert.AreEqual(3, index);
             Assert.AreEqual(5, query.GetEntityCount());
         }
 
-        public class System : IEcsSystem
-        {
-            private EcsQuery query;
-            public void Init(EcsWorld world)
-            {
-                var queryDesc = world.CreateQueryDesc().WithAll<ComponentA>().WithNone<ComponentB>().Build();
-                query = world.GetQuery(queryDesc);
-            }
-            public void Dispose()
-            {
-            }
-            public void Update()
-            {
-                query.ForEach((EcsEntity entity, ref ComponentA compA) =>
-                {
-                    compA.Value++;
-                });
-            }
-        }
+        //public class System : IEcsSystem
+        //{
+        //    private EcsQuery query;
+        //    public void Init(EcsWorld world)
+        //    {
+        //        var queryDesc = world.CreateQueryDesc().WithAll<ComptA>().WithNone<CompB>().Build();
+        //        query = world.GetQuery(queryDesc);
+        //    }
+        //    public void Dispose()
+        //    {
+        //    }
+        //    public void Update()
+        //    {
+        //        query.ForEach((EcsEntity entity, ref ComptA compA) =>
+        //        {
+        //            compA.Value++;
+        //        });
+        //    }
+        //}
     }
 }
