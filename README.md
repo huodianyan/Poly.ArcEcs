@@ -10,6 +10,7 @@ A minimal archetypal ECS focused on compatibility and performance.
 - Entity/Component managed by archetypes and archetypal graph
 - Query traverse archetype, No entity cache
 - 255 components, unlimited entity, archetype, query, system
+- Support Remove component (eg. event) in the end of the world system update
 - Adapted to all C# game engine
 - Support Web by same framework*
 - Support serialzation, network*
@@ -29,7 +30,7 @@ A minimal archetypal ECS focused on compatibility and performance.
 struct CompA { public int Value; }
 struct CompB { public int Value; }
 
-var world = new EcsWorld();
+var world = new World();
 world.CreateEntity<CompA, CompB>();
 
 var queryDesc = world.CreateQueryDesc().WithAll<CompA>().WithNone<CompB>().Build();
