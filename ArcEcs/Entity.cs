@@ -4,19 +4,14 @@ using System.Runtime.CompilerServices;
 namespace Poly.ArcEcs
 {
     [Serializable]
-    public struct EcsEntity : IEquatable<EcsEntity>
+    public struct Entity : IEquatable<Entity>
     {
         public int Index;
         public short Version;
 
-        //public EcsEntity(EcsEntityInternal e)
-        //{
-        //    Index = e.Index;
-        //    Version = e.Version;
-        //}
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsValid() => Version > 0;
-        public bool Equals(EcsEntity other) => Index == other.Index;// && Version == other.Version;
+        public bool Equals(Entity other) => Index == other.Index;// && Version == other.Version;
         //public static implicit operator EcsEntity(EcsEntityInternal v) => new EcsEntity { Index = v.Index, Version = v.Version };
         public override int GetHashCode() => Index;
     }
@@ -32,7 +27,6 @@ namespace Poly.ArcEcs
         {
             return $"EntityInternal{{{Index},{ComponentCount},{ArchetypeId},{ArchetypeChunkId}}}";
         }
-
-        public static implicit operator EcsEntity(EcsEntityInternal v) => new EcsEntity { Index = v.Index, Version = v.Version };
+        public static implicit operator Entity(EcsEntityInternal v) => new Entity { Index = v.Index, Version = v.Version };
     }
 }

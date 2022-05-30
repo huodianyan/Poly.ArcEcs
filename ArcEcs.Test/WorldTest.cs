@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Poly.ArcEcs.Test
 {
     [TestClass]
-    public partial class EcsWorldTest
+    public partial class WorldTest
     {
         public struct CompA : IEquatable<CompA>
         {
@@ -21,18 +21,21 @@ namespace Poly.ArcEcs.Test
             public bool Equals(CompB other) => Value == other.Value && Str == other.Str;
             public override string ToString() => $"CompB:{{{Value},{Str}}}";
         }
-        public struct CompC : IEquatable<CompC>
+        public struct CompC : IEquatable<CompC>, IDisposable
         {
             public int Value;
+
+            public void Dispose() => Console.WriteLine($"CompC.Dispose!");
             public bool Equals(CompC other) => Value == other.Value;
         }
-        public struct CompD : IEquatable<CompD>
+        public struct CompD : IEquatable<CompD>, IDisposable
         {
             public int Value;
+            public void Dispose() => Console.WriteLine($"CompD.Dispose!");
             public bool Equals(CompD other) => Value == other.Value;
         }
 
-        private static EcsWorld world;
+        private static World world;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
@@ -45,11 +48,7 @@ namespace Poly.ArcEcs.Test
         [TestInitialize]
         public void TestInitialize()
         {
-            world = new EcsWorld();
-            //world.RegisterComponent<ComponentA>();
-            //world.RegisterComponent<ComponentB>();
-            //world.RegisterComponent<ComponentC>();
-            //world.RegisterComponent<ComponentD>();
+            world = new World();
         }
         [TestCleanup]
         public void TestCleanup()
@@ -156,7 +155,9 @@ namespace Poly.ArcEcs.Test
             compB1 = ref world.GetComponent<CompB>(entity);
             Assert.AreEqual(11, compB1.Value);
 
+            world.AddComponent(entity, new CompD { Value = 13 });
             world.RemoveComponent<CompC>(entity);
+            world.RemoveComponent<CompD>(entity);
             compB1 = ref world.GetComponent<CompB>(entity);
             Assert.AreEqual(11, compB1.Value);
         }
@@ -186,7 +187,7 @@ namespace Poly.ArcEcs.Test
             Assert.IsTrue(query.Matchs(entityABD));
 
             //Set comp
-            query.ForEach((EcsEntity entity, ref CompB compB) =>
+            query.ForEach((Entity entity, ref CompB compB) =>
             {
                 compB.Value = 13;
             });
@@ -194,7 +195,7 @@ namespace Poly.ArcEcs.Test
             Assert.AreEqual(13, compB.Value);
 
             //Remove comp: entityABD -> entityBD
-            query.ForEach((EcsEntity entity, ref CompB compB) =>
+            query.ForEach((Entity entity, ref CompB compB) =>
             {
                 if (world.HasComponent<CompD>(entity))
                 {
@@ -213,7 +214,7 @@ namespace Poly.ArcEcs.Test
 
             //TODO
             var index = 0;
-            query.ForEach((EcsEntity entity, ref CompB compB) =>
+            query.ForEach((Entity entity, ref CompB compB) =>
             {
                 index++;
                 world.CreateEntity<CompB, CompD, CompA>();

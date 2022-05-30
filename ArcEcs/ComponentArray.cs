@@ -4,41 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace Poly.ArcEcs
 {
-    public struct Parent
-    {
-        public EcsEntity Entity;
-    }
-    public struct Children
-    {
-        public List<EcsEntity> EntityList;
-
-        public void AddChild(EcsEntity entity)
-        {
-            EntityList ??= new List<EcsEntity>();
-            if (!EntityList.Contains(entity))
-                EntityList.Add(entity);
-        }
-        public void RemoveChild(EcsEntity entity)
-        {
-            EntityList.Remove(entity);
-        }
-    }
-
-    #region Component
-    public delegate IEcsComponentArray CreateComponentArrayDelegate(int capacity);
-    internal delegate void CopyComponentDelegate(EcsArchetype src, int chunkId, EcsArchetype dest);
-    internal class EcsComponentType
-    {
-        //255: 0~254(0xFE)
-        internal byte Id;
-        internal Type Type;
-        //internal object Default;
-        internal IEcsComponentArray CompArray;
-        internal CreateComponentArrayDelegate ComponentArrayCreator;
-        internal CopyComponentDelegate CopyChunkComponent;
-    }
-
-    public interface IEcsComponentArray
+    public interface IComponentArray
     {
         int Capacity { get; }
         int Count { get; }
@@ -47,9 +13,9 @@ namespace Poly.ArcEcs
         object Get(int index);
         void Set(int index, object comp);
         void Clear();
-        bool RemoveAt(int index);
+        bool RemoveAt(int index, bool isDispose = false);
     }
-    public class EcsComponentArray<T> : IEcsComponentArray where T : struct
+    public class ComponentArray<T> : IComponentArray where T : struct
     {
         private T[] items;
         private int count;
@@ -58,7 +24,7 @@ namespace Poly.ArcEcs
         public int Count => count;
         public T[] Array => items;
 
-        public EcsComponentArray(int capacity)
+        public ComponentArray(int capacity)
         {
             items = new T[capacity];
             count = 0;
@@ -73,9 +39,11 @@ namespace Poly.ArcEcs
             return count - 1;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool RemoveAt(int index)
+        public bool RemoveAt(int index, bool isDispose = false)
         {
             var result = false;
+            if (isDispose)
+                if (items[index] is IDisposable disposable) disposable.Dispose();
             if (--count > index)
             {
                 items[index] = items[count];
@@ -85,14 +53,13 @@ namespace Poly.ArcEcs
             return result;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        object IEcsComponentArray.Get(int index) => items[index];
+        object IComponentArray.Get(int index) => items[index];
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        void IEcsComponentArray.Set(int index, object comp) => items[index] = (T)comp;
+        void IComponentArray.Set(int index, object comp) => items[index] = (T)comp;
         public void Clear()
         {
             System.Array.Clear(items, 0, count);
             count = 0;
         }
     }
-    #endregion
 }

@@ -1,6 +1,6 @@
 ﻿namespace Poly.ArcEcs
 {
-    public static class EcsUtil
+    internal static class Util
     {
         //https://www.geeksforgeeks.org/smallest-power-of-2-greater-than-or-equal-to-n/
         public static int NextPowerOf2(int n)

@@ -3,9 +3,9 @@ using System.Runtime.CompilerServices;
 
 namespace Poly.ArcEcs
 {
-    public partial class EcsQueryDesc
+    public partial class QueryDesc
     {
-        protected readonly EcsWorld world;
+        protected readonly World world;
 
         internal byte[] all;
         internal byte[] any;
@@ -18,7 +18,7 @@ namespace Poly.ArcEcs
         public ArraySegment<byte> Any => new ArraySegment<byte>(any, 0, anyCount);
         public ArraySegment<byte> None => new ArraySegment<byte>(none, 0, noneCount);
 
-        internal EcsQueryDesc(EcsWorld world)
+        internal QueryDesc(World world)
         {
             this.world = world;
             all = new byte[4];
@@ -34,7 +34,7 @@ namespace Poly.ArcEcs
             noneCount = 0;
             hash = 0;
         }
-        public EcsQueryDesc Build()
+        public QueryDesc Build()
         {
             if (allCount > 1) Array.Sort(all, 0, allCount);
             if (anyCount > 1) Array.Sort(any, 0, anyCount);
@@ -59,7 +59,7 @@ namespace Poly.ArcEcs
             if (allCount == all.Length) { Array.Resize(ref all, allCount << 1); }
             all[allCount++] = compId;
         }
-        public EcsQueryDesc WithAll(params byte[] compIds)
+        public QueryDesc WithAll(params byte[] compIds)
         {
             foreach (var compId in compIds) WithAll(compId);
             return this;
@@ -82,7 +82,7 @@ namespace Poly.ArcEcs
             if (anyCount == any.Length) { Array.Resize(ref any, anyCount << 1); }
             any[anyCount++] = compId;
         }
-        public EcsQueryDesc WithAny(params byte[] compIds)
+        public QueryDesc WithAny(params byte[] compIds)
         {
             foreach (var compId in compIds) WithAny(compId);
             return this;
@@ -104,7 +104,7 @@ namespace Poly.ArcEcs
             if (noneCount == none.Length) { Array.Resize(ref none, noneCount << 1); }
             none[noneCount++] = compId;
         }
-        public EcsQueryDesc WithNone(params byte[] compIds)
+        public QueryDesc WithNone(params byte[] compIds)
         {
             foreach (var compId in compIds) WithNone(compId);
             return this;

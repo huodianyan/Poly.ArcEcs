@@ -3,22 +3,9 @@ using System.Runtime.CompilerServices;
 
 namespace Poly.ArcEcs
 {
-    #region ArcheType
-    //public struct EcsArchetype
-    //{
-    //    private readonly EcsArchetypeData data;
-    //    public int Id => data.id;
-    //    public int CompCount => data.compCount;
-    //    public int EntityCount => data.entityIds.Count;
-
-    //    internal EcsArchetype(EcsArchetypeData data)
-    //    {
-    //        this.data = data;
-    //    }
-    //}
-    public class EcsArchetype
+    public class Archetype
     {
-        internal readonly EcsWorld world;
+        internal readonly World world;
         internal readonly int id;
         internal readonly byte[] compIds;
         internal readonly byte compCount;
@@ -29,26 +16,26 @@ namespace Poly.ArcEcs
         //internal FastList<int> entityIds;
         internal int[] entityIds;
         internal int entityCount;
-        internal IEcsComponentArray[] compArrays;
+        internal IComponentArray[] compArrays;
         //internal FastArray<int> NextIds;
         //internal FastArray<int> PreIds;
         //index by comp
         //internal int[] nextIds;
         //internal int[] preIds;
-        internal EcsArchetype[] nexts;
-        internal EcsArchetype[] pres;
+        internal Archetype[] nexts;
+        internal Archetype[] pres;
 
         public int Id => id;
         public int CompCount => compCount;
         public int EntityCount => entityCount;
         public ArraySegment<byte> CompIds => new ArraySegment<byte>(compIds, 0, compCount);
-        public EcsArchetype[] Nexts => nexts;
-        public EcsArchetype[] Pres => pres;
+        public Archetype[] Nexts => nexts;
+        public Archetype[] Pres => pres;
 
         public event Action<int> EntityAddedEvent;
         public event Action<int> EntityRemovedEvent;
 
-        internal EcsArchetype(EcsWorld world, int id, byte[] compIds, int count)//FastArray<int> compIds, int hash = 0
+        internal Archetype(World world, int id, byte[] compIds, int count)//FastArray<int> compIds, int hash = 0
         {
             this.world = world;
             this.id = id;
@@ -60,8 +47,8 @@ namespace Poly.ArcEcs
             //PreIds = new FastArray<int>(32);
             //nextIds = new int[256];
             //preIds = new int[256];
-            nexts = new EcsArchetype[256];
-            pres = new EcsArchetype[256];
+            nexts = new Archetype[256];
+            pres = new Archetype[256];
 
             //this.compIds = null;
             this.compIds = new byte[compCount];
@@ -75,12 +62,12 @@ namespace Poly.ArcEcs
                 compIndexCount = (byte)(this.compIds[compCount - 1] + 1);
                 compIndexs = new byte[compIndexCount];
                 for (int i = 0; i < compIndexCount; i++) compIndexs[i] = 0xff;
-                compArrays = new IEcsComponentArray[compCount];
+                compArrays = new IComponentArray[compCount];
                 for (byte i = 0; i < compCount; i++)
                 {
                     var compId = this.compIds[i];
                     var compTypeData = world.GetComponentTypeData(compId);
-                    compArrays[i] = compTypeData.ComponentArrayCreator.Invoke(512);
+                    compArrays[i] = compTypeData.CreateComponentArray(512);
                     compIndexs[compId] = i;
                 }
             }
@@ -110,7 +97,7 @@ namespace Poly.ArcEcs
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T[] GetComps<T>(byte compId) where T : struct
         {
-            var list = (EcsComponentArray<T>)compArrays[compIndexs[compId]];
+            var list = (ComponentArray<T>)compArrays[compIndexs[compId]];
             return list.Array;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -126,7 +113,7 @@ namespace Poly.ArcEcs
             if (entityCount == entityIds.Length) Array.Resize(ref entityIds, entityCount << 1);
             entityIds[entityCount++] = entity.Index;
             //Console.WriteLine($"EcsArchetypeData.AddEntity: {entityList.Count}");
-            Console.WriteLine($"EcsArchetype.AddEntity: {this},{entity}->{id},{chunkId}");
+            //Console.WriteLine($"EcsArchetype.AddEntity: {this},{entity}->{id},{chunkId}");
             entity.ArchetypeId = id;
             entity.ArchetypeChunkId = chunkId;
             if (addComps)
@@ -134,7 +121,7 @@ namespace Poly.ArcEcs
             EntityAddedEvent?.Invoke(entity.Index);
             return chunkId;
         }
-        internal void RemoveEntity(ref EcsEntityInternal entity)
+        internal void RemoveEntity(ref EcsEntityInternal entity, bool removeComps = false)
         {
             var chunkId = entity.ArchetypeChunkId;
             entity.ArchetypeId = -1;
@@ -149,8 +136,8 @@ namespace Poly.ArcEcs
             }
             //Console.WriteLine($"FastList.RemoveAtSwap: {count}, {index}");
             entityIds[entityCount] = default;
-            for (int i = 0; i < compCount; i++)
-                compArrays[i].RemoveAt(chunkId);
+            if(removeComps)
+                for (int i = 0; i < compCount; i++) compArrays[i].RemoveAt(chunkId);
             EntityRemovedEvent?.Invoke(entity.Index);
         }
         //internal ref T AddComponent<T>(int compId) where T : struct
@@ -170,7 +157,7 @@ namespace Poly.ArcEcs
         {
             if (!HasComponent(compId)) return;
             var compIndex = compIndexs[compId];
-            var list = (EcsComponentArray<T>)compArrays[compIndex];
+            var list = (ComponentArray<T>)compArrays[compIndex];
             list.Add(comp);
         }
         internal void SetComponent<T>(int compId, int chunkId, T comp) where T : struct
@@ -178,7 +165,7 @@ namespace Poly.ArcEcs
             if (!HasComponent(compId))
                 return;
             var compIndex = compIndexs[compId];
-            var list = (EcsComponentArray<T>)compArrays[compIndex];
+            var list = (ComponentArray<T>)compArrays[compIndex];
             list.Array[chunkId] = comp;
         }
         internal void SetComponent(int compId, int chunkId, object comp)
@@ -199,8 +186,22 @@ namespace Poly.ArcEcs
             //if (!HasComponent(compId))
             //    return default;
             var compIndex = compIndexs[compId];
-            var list = (EcsComponentArray<T>)compArrays[compIndex];
+            var list = (ComponentArray<T>)compArrays[compIndex];
             return ref list.Array[chunkId];
+        }
+        internal void RemoveComponent(int compId, int chunkId)
+        {
+            var compIndex = compIndexs[compId];
+            var list = compArrays[compIndex];
+            //Console.WriteLine($"EcsArchetype.RemoveComponent: {compId},{chunkId}");
+            list.RemoveAt(chunkId, true);
+        }
+        internal void MoveComponent<T>(int compId, int chunkId, Archetype dest) where T : struct
+        {
+            var compIndex = compIndexs[compId];
+            var list = (ComponentArray<T>)compArrays[compIndex];
+            dest.AddComponent(compId, list.Array[chunkId]);
+            list.RemoveAt(chunkId);
         }
         //public static int GetHash(FastArray<int> compIds)
         //{
@@ -212,5 +213,4 @@ namespace Poly.ArcEcs
         //    return hash;
         //}
     }
-    #endregion
 }

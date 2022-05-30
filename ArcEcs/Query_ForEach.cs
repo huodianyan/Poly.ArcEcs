@@ -1,21 +1,21 @@
 ﻿namespace Poly.ArcEcs
 {
-    public delegate void ForEachEC<T0>(EcsEntity e, ref T0 t0) where T0 : struct;
-    public delegate void ForEachECC<T0, T1>(EcsEntity e, ref T0 t0, ref T1 t1) where T0 : struct where T1 : struct;
-    public delegate void ForEachECCC<T0, T1, T2>(EcsEntity e, ref T0 t0, ref T1 t1, ref T2 t2) where T0 : struct where T1 : struct where T2 : struct;
-    public delegate void ForEachECCCC<T0, T1, T2, T3>(EcsEntity e, ref T0 t0, ref T1 t1, ref T2 t2, ref T3 t3) where T0 : struct where T1 : struct where T2 : struct where T3 : struct;
+    public delegate void ForEachEC<T0>(Entity e, ref T0 t0) where T0 : struct;
+    public delegate void ForEachECC<T0, T1>(Entity e, ref T0 t0, ref T1 t1) where T0 : struct where T1 : struct;
+    public delegate void ForEachECCC<T0, T1, T2>(Entity e, ref T0 t0, ref T1 t1, ref T2 t2) where T0 : struct where T1 : struct where T2 : struct;
+    public delegate void ForEachECCCC<T0, T1, T2, T3>(Entity e, ref T0 t0, ref T1 t1, ref T2 t2, ref T3 t3) where T0 : struct where T1 : struct where T2 : struct where T3 : struct;
 
     public delegate void ForEachC<T0>(ref T0 t0) where T0 : struct;
     public delegate void ForEachCC<T0, T1>(ref T0 t0, ref T1 t1) where T0 : struct where T1 : struct;
     public delegate void ForEachCCC<T0, T1, T2>(ref T0 t0, ref T1 t1, ref T2 t2) where T0 : struct where T1 : struct where T2 : struct;
     public delegate void ForEachCCCC<T0, T1, T2, T3>(ref T0 t0, ref T1 t1, ref T2 t2, ref T3 t3) where T0 : struct where T1 : struct where T2 : struct where T3 : struct;
-    public partial class EcsQuery
+    public partial class Query
     {
         public void ForEach<T0>(ForEachEC<T0> handler) where T0 : struct
         {
             var entities = world.entityInternals;
             var compId0 = world.GetComponentId<T0>();
-            ForEach((in EcsArchetype archetype) =>
+            ForEach((in Archetype archetype) =>
             {
                 var entityCount = archetype.entityCount;
                 if (entityCount == 0) return;
@@ -31,7 +31,7 @@
             var entities = world.entityInternals;
             var compId0 = world.GetComponentId<T0>();
             var compId1 = world.GetComponentId<T1>();
-            ForEach((in EcsArchetype archetype) =>
+            ForEach((in Archetype archetype) =>
             {
                 var entityCount = archetype.entityCount;
                 if (entityCount == 0) return;
@@ -49,7 +49,7 @@
             var compId0 = world.GetComponentId<T0>();
             var compId1 = world.GetComponentId<T1>();
             var compId2 = world.GetComponentId<T2>();
-            ForEach((in EcsArchetype archetype) =>
+            ForEach((in Archetype archetype) =>
             {
                 var entityCount = archetype.entityCount;
                 if (entityCount == 0) return;
@@ -69,7 +69,7 @@
             var compId1 = world.GetComponentId<T1>();
             var compId2 = world.GetComponentId<T2>();
             var compId3 = world.GetComponentId<T3>();
-            ForEach((in EcsArchetype archetype) =>
+            ForEach((in Archetype archetype) =>
             {
                 var entityCount = archetype.entityCount;
                 if (entityCount == 0) return;
@@ -86,7 +86,7 @@
         public void ForEach<T0>(ForEachC<T0> handler) where T0 : struct
         {
             var compId0 = world.GetComponentId<T0>();
-            ForEach((in EcsArchetype archetype) =>
+            ForEach((in Archetype archetype) =>
             {
                 var entityCount = archetype.entityCount;
                 if (entityCount == 0) return;
@@ -99,7 +99,7 @@
         {
             var compId0 = world.GetComponentId<T0>();
             var compId1 = world.GetComponentId<T1>();
-            ForEach((in EcsArchetype archetype) =>
+            ForEach((in Archetype archetype) =>
             {
                 var entityCount = archetype.entityCount;
                 if (entityCount == 0) return;
@@ -114,7 +114,7 @@
             var compId0 = world.GetComponentId<T0>();
             var compId1 = world.GetComponentId<T1>();
             var compId2 = world.GetComponentId<T2>();
-            ForEach((in EcsArchetype archetype) =>
+            ForEach((in Archetype archetype) =>
             {
                 var entityCount = archetype.entityCount;
                 if (entityCount == 0) return;
@@ -131,7 +131,7 @@
             var compId1 = world.GetComponentId<T1>();
             var compId2 = world.GetComponentId<T2>();
             var compId3 = world.GetComponentId<T3>();
-            ForEach((in EcsArchetype archetype) =>
+            ForEach((in Archetype archetype) =>
             {
                 var entityCount = archetype.entityCount;
                 if (entityCount == 0) return;

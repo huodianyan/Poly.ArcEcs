@@ -6,7 +6,7 @@
 	</PropertyGroup>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command="if exist $(SolutionDir)..\Poly.ArcEcs.Unity\ArcEcs.Unity\Runtime\ArcEcs\ copy $(ProjectDir)*.cs $(SolutionDir)..\Poly.ArcEcs.Unity\ArcEcs.Unity\Runtime\ArcEcs\" />
+		<Exec Command="if exist $(SolutionDir)..\Poly.ArcEcs.Unity\ArcEcs.Unity\Runtime\ArcEcs\ copy $(ProjectDir)*.cs $(SolutionDir)..\Poly.ArcEcs.Unity\ArcEcs.Unity\Runtime\ArcEcs\ /y" />
 	</Target>
 
 </Project>

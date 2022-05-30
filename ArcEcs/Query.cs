@@ -4,27 +4,27 @@ using System.Runtime.CompilerServices;
 
 namespace Poly.ArcEcs
 {
-    internal delegate void ForEachArchetype(in EcsArchetype archetypeData);
-    public delegate void ForEachE(EcsEntity e);
-    public partial class EcsQuery
+    internal delegate void ForEachArchetype(in Archetype archetypeData);
+    public delegate void ForEachE(Entity e);
+    public partial class Query
     {
-        private readonly EcsWorld world;
-        private readonly EcsQueryDesc queryDesc;
+        private readonly World world;
+        private readonly QueryDesc queryDesc;
         //internal int id;
         internal int version;
         //internal FastArray<int> ArchetypeIds;
         //internal int[] archetypeIds;
         //internal int archetypeCount;
-        internal List<EcsArchetype> archetypeList;
+        internal List<Archetype> archetypeList;
 
         //public int Version => version;
         //public ref readonly EcsQueryDesc QueryDesc => ref world.queryDescs[id];
-        public EcsQueryDesc QueryDesc => queryDesc;
+        public QueryDesc QueryDesc => queryDesc;
         public int Hash => queryDesc.hash;
 
-        public event Action<EcsArchetype> ArchetypeAddedEvent;
+        public event Action<Archetype> ArchetypeAddedEvent;
 
-        internal EcsQuery(EcsWorld world, EcsQueryDesc queryDesc)
+        internal Query(World world, QueryDesc queryDesc)
         {
             this.world = world;
             //this.id = id;
@@ -32,7 +32,7 @@ namespace Poly.ArcEcs
             version = 0;
             //archetypeIds = new int[256];
             //archetypeCount = 0;
-            archetypeList = new List<EcsArchetype>();
+            archetypeList = new List<Archetype>();
             //ArchetypeAddedEvent = null;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -49,13 +49,13 @@ namespace Poly.ArcEcs
             return count;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Matchs(EcsEntity entity)
+        public bool Matchs(Entity entity)
         {
             //ref readonly var archetype = ref world.GetEntityArchetype(entityId);
             var archetype = world.GetEntityArchetype(entity);
             return Marches(archetype);
         }
-        internal bool Marches(in EcsArchetype archetype)
+        internal bool Marches(in Archetype archetype)
         {
             for (int i = 0; i < queryDesc.allCount; i++)
                 if (!archetype.HasComponent(queryDesc.all[i])) return false;
@@ -98,10 +98,10 @@ namespace Poly.ArcEcs
             else if (entityIds.Length < count) Array.Resize(ref entityIds, count);
             if (entityIds == null || entityIds.Length < count)
             {
-                var count2 = EcsUtil.NextPowerOf2(count);
+                var count2 = Util.NextPowerOf2(count);
                 entityIds = new int[count2];
             }
-            ForEach((in EcsArchetype archetype) =>
+            ForEach((in Archetype archetype) =>
             {
                 var entityCount = archetype.entityCount;
                 var ids = archetype.entityIds;
@@ -117,11 +117,11 @@ namespace Poly.ArcEcs
             if (count == 0) count = GetEntityCount();
             if (comps == null || comps.Length < count)
             {
-                var count2 = EcsUtil.NextPowerOf2(count);
+                var count2 = Util.NextPowerOf2(count);
                 comps = new T[count2];
             }
             var compId0 = world.GetComponentId<T>();
-            ForEach((in EcsArchetype archetype) =>
+            ForEach((in Archetype archetype) =>
             {
                 var entityCount = archetype.entityCount;
                 var archetypeComps = archetype.GetComps<T>(compId0);
@@ -146,7 +146,7 @@ namespace Poly.ArcEcs
         public void ForEach(ForEachE handler)
         {
             var entities = world.entityInternals;
-            ForEach((in EcsArchetype archetype) =>
+            ForEach((in Archetype archetype) =>
             {
                 var entityCount = archetype.entityCount;
                 if (entityCount == 0) return;
